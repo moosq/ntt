@@ -1,0 +1,56 @@
+#ifndef DEF_CHAR
+#define DEF_CHAR(Tok, Str)
+#endif
+
+DEF_CHAR(TOK_EOF,        '\0')
+DEF_CHAR(TOK_EXCLAMATION, '!')
+DEF_CHAR(TOK_DOT,         '.')
+DEF_CHAR(TOK_CONCAT,      '&')
+DEF_CHAR(TOK_ANY,         '?')
+DEF_CHAR(TOK_GT,          '>')
+DEF_CHAR(TOK_LT,          '<')
+DEF_CHAR(TOK_PLUS,        '+')
+DEF_CHAR(TOK_MINUS,       '-')
+DEF_CHAR(TOK_STAR,        '*')
+DEF_CHAR(TOK_SLASH,       '/')
+DEF_CHAR(TOK_COLON,       ':')
+DEF_CHAR(TOK_SEMICOLON,   ';')
+DEF_CHAR(TOK_COMMA,       ',')
+DEF_CHAR(TOK_LPAREN,      '(')
+DEF_CHAR(TOK_RPAREN,      ')')
+DEF_CHAR(TOK_LCURLY,      '{')
+DEF_CHAR(TOK_RCURLY,      '}')
+DEF_CHAR(TOK_LBRACKET,    '[')
+DEF_CHAR(TOK_RBRACKET,    ']')
+#undef DEF_CHAR
+
+#ifndef DEF_VALUE
+#define DEF_VALUE(Tok, Str)
+#endif
+DEF_VALUE(TOK_COMMENT,         "comment")
+DEF_VALUE(TOK_ID,              "identifier")
+DEF_VALUE(TOK_TITANID,         "Titan identifier")
+DEF_VALUE(TOK_INT,             "integer literal")
+DEF_VALUE(TOK_FLOAT,           "float literal")
+DEF_VALUE(TOK_CSTRING,         "string literal")
+DEF_VALUE(TOK_BSTRING,         "bitstring literal")
+DEF_VALUE(TOK_MODIFIER,        "modifier")
+#undef DEF_VALUE
+
+#ifndef DEF_TOKEN
+#define DEF_TOKEN(Tok, Str)
+#endif
+DEF_TOKEN(TOK_ERROR,    "error token")
+DEF_TOKEN(TOK_PREPROC,  "preprocessor directive")
+DEF_TOKEN(TOK_EQ,       "==")
+DEF_TOKEN(TOK_NE,       "!=")
+DEF_TOKEN(TOK_GE,       ">=")
+DEF_TOKEN(TOK_LE,       "<=")
+DEF_TOKEN(TOK_SHR,      ">>")
+DEF_TOKEN(TOK_SHL,      "<<")
+DEF_TOKEN(TOK_ROR,      "@>")
+DEF_TOKEN(TOK_ROL,      "<@")
+DEF_TOKEN(TOK_RANGE,    "..")
+DEF_TOKEN(TOK_ASSIGN,   ":=")
+DEF_TOKEN(TOK_REDIRECT, "->")
+#undef DEF_TOKEN
