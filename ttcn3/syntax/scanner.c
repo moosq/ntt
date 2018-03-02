@@ -2380,7 +2380,7 @@ scanner_t *scanner_new(src_t *src, error_f error)
     s->error = error;
 
     yylex_init_extra(s,&s->scanner);
-    s->buf = yy_scan_bytes(src_addr(src),src_size(src) - 1,s->scanner);
+    s->buf = yy_scan_bytes(src_addr(src),src_size(src),s->scanner);
     return s;
 }
 

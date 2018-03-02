@@ -1,0 +1,2 @@
+ttcn3/syntax/parser.c -diff
+ttcn3/syntax/scanner.c -diff
