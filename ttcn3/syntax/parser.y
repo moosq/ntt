@@ -256,26 +256,9 @@
 %token<string> YYTOK_KW_XOR         "xor"
 %token<string> YYTOK_KW_XOR4B       "xor4b"
 
-/* fix Omit/Negation conflicts as shift */
-%left OMIT
-
-/* fix return-conflicts as shift */
-%nonassoc "return"
-%nonassoc "action" "activate" "address" "all" "any" "anytype" "bitstring" "boolean" "charstring" "checkstate" "clear" "connect" "deactivate" "default" "disconnect" "execute" "float" "getverdict" "halt" "hexstring" "identifier" "integer" "kill" "log" "map" "match" "mtc" "octetstring" "self" "setverdict" "start" "stop" "system" "testcase" "universal" "unmap" "valueof" "verdicttype" "{"
-%nonassoc "create" "send" "raise" "read" "receive" "trigger" "getcall" "catch" "getreply"
-
-%nonassoc ANYFROM
-
-
-/* fix Decl/AltGuards */
-%left ARRAYDEF
 
 /* precedence table */
-//%left LOW
-//%left "decmatch" ".."  "value" "param" "alive"
 
-%left ":=" /* modifies-conflict in Expr resolved as shift */
-%left ":"  /* inline-template-conflict in Expr resolved as shift */
 %left ".."
 %right "!"
 %left "or"
@@ -292,11 +275,6 @@
 %left "+" "-" "&"
 %left "*" "/" "mod" "rem"
 %right UNARY
-
-//%left "length" "ifpresent"
-%left "." "(" "["
-%left "->"
-%left "to" "from"
 
 %{
 
@@ -332,32 +310,22 @@ parse
  *************************************************************************/
 
 Modules
-    :         Module OptSemicolon
-    | Modules Module OptSemicolon
+    :         Module Semi
+    | Modules Module Semi
     ;
 
 Module
      : "module" Def OptLanguage "{" OptModuleDefs OptControl "}" OptWith
-
      ;
 
 OptLanguage
     : /* empty */
-    | "language" Strings
+    | "language" LangSpec
     ;
 
-Strings
-    :             String
-    | Strings "," String
-    ;
-
-String
-    : CSTRING
-    ;
-
-OptModuleDefs
-    : /* empty */
-    | ModuleDefs
+LangSpec
+    :              CSTRING
+    | LangSpec "," CSTRING
     ;
 
 OptControl
@@ -365,24 +333,34 @@ OptControl
     | "control" Block
     ;
 
+
+/*************************************************************************
+ * Module Definitions
+ *************************************************************************/
+
+OptModuleDefs
+    : /* empty */
+    | ModuleDefs
+    ;
+
 ModuleDefs
-    :            ModuleDef OptSemicolon
-    | ModuleDefs ModuleDef OptSemicolon
+    :            ModuleDef Semi
+    | ModuleDefs ModuleDef Semi
     ;
 
 ModuleDef
-    : Group
-    | Friend
-    | Import
-    | Signature
-    | ExtFunction
-    | Function
-    | Testcase
-    | Altstep
-    | ExtConst
-    | OptVisibility Decl         /* TODO: disable param-template */
-    | ModulePar
-    | OptVisibility "type" Type  /* TODO */
+    : OptVisibility ExtFunction
+    | OptVisibility Function
+    | OptVisibility Testcase
+    | OptVisibility Altstep
+    | OptVisibility Signature
+    | OptVisibility Type
+    | OptVisibility ExtConst
+    | OptVisibility Decl
+    | OptVisibility ModulePar
+    | OptVisibility Import
+    | OptVisibility Group
+    | "friend" "module" Def
     ;
 
 OptVisibility
@@ -392,15 +370,8 @@ OptVisibility
     | "private"
     ;
 
-
 Group
-    :          "group" Def "{" OptModuleDefs "}" OptWith
-    | "public" "group" Def "{" OptModuleDefs "}" OptWith
-    ;
-
-Friend
-    :          "friend" "module" Def
-    | "public" "friend" "module" Def
+    : "group" Def "{" OptModuleDefs "}" OptWith
     ;
 
 
@@ -409,14 +380,7 @@ Friend
  *************************************************************************/
 
 Import
-    : OptVisibility "import" "from" Def OptLanguage OptRecursive ImportBody OptWith
-
-    ;
-
-ImportBody
-    : ImportTypeAll
-    | ImportTypeAll "except" "{" OptExceptStmts "}"
-    | "{" OptImportStmts "}"
+    : "import" "from" Def OptLanguage OptRecursive ImportBody OptWith
     ;
 
 OptRecursive
@@ -424,24 +388,10 @@ OptRecursive
     | "recursive"
     ;
 
-ImportType
-    : "template"
-    | "const"
-    | "altstep"
-    | "testcase"
-    | "function"
-    | "signature"
-    | "modulepar"
-    | "import"
-    | "type"
-    ;
-
-ImportTypeGroup
-    : "group"
-    ;
-
-ImportTypeAll
+ImportBody
     : "all"
+    | "all" "except" "{" OptExceptStmts "}"
+    |                "{" OptImportStmts "}"
     ;
 
 OptImportStmts
@@ -450,15 +400,27 @@ OptImportStmts
     ;
 
 ImportStmts
-    :             ImportStmt OptSemicolon
-    | ImportStmts ImportStmt OptSemicolon
+    :             ImportStmt Semi
+    | ImportStmts ImportStmt Semi
     ;
 
 ImportStmt
-    : ImportType      Refs
-    | ImportTypeGroup GroupRefs
-    | ImportType      "all" OptExcept
-    | ImportTypeGroup "all" OptExcept
+    : ImportKind Refs
+    | "group"    GroupRefs
+    | ImportKind "all" OptExcept
+    | "group"    "all" OptExcept
+    ;
+
+ImportKind
+    : "altstep"
+    | "const"
+    | "function"
+    | "import"
+    | "modulepar"
+    | "signature"
+    | "template"
+    | "testcase"
+    | "type"
     ;
 
 OptExcept
@@ -482,16 +444,17 @@ OptExceptStmts
     ;
 
 ExceptStmts
-    :             ExceptStmt OptSemicolon
-    | ExceptStmts ExceptStmt OptSemicolon
+    :             ExceptStmt Semi
+    | ExceptStmts ExceptStmt Semi
     ;
 
 ExceptStmt
-    : ImportType      Refs
-    | ImportType      "all"
-    | ImportTypeGroup Refs
-    | ImportTypeGroup "all"
+    : ImportKind Refs
+    | ImportKind "all"
+    | "group"    Refs
+    | "group"    "all"
     ;
+
 
 /*************************************************************************
  * Type
@@ -500,24 +463,24 @@ ExceptStmt
 Type
     : Component
     | Port
-    | Enum
-    | RecordOfType
-    | SetOfType
-    | UnionType
-    | RecordType
-    | SetType
     | SubType
+    | Enum
+    | List
+    | Struct
+    | BehaviourType
     ;
 
 NestedType
     : Ref
-    | NestedRecordOfType
-    | NestedSetOfType
-    | NestedUnionType
-    | NestedRecordType
-    | NestedSetType
+    | NestedList
+    | NestedStruct
     | NestedEnum
     ;
+
+
+/*************************************************************************
+ * Return Type
+ *************************************************************************/
 
 OptReturn
     : /* empty */
@@ -530,7 +493,7 @@ OptReturn
  *************************************************************************/
 
 SubType
-    : Ref ArrayDef OptConstraint OptWith
+    : "type" Ref ArrayDef OptConstraint OptWith
     ;
 
 OptConstraint
@@ -545,58 +508,36 @@ OptConstraint
  * List Type
  *************************************************************************/
 
-RecordOfType
-   : "record" OptLength "of" NestedType Def OptConstraint OptWith
-
-
-SetOfType
-   : "set" OptLength "of" NestedType Def OptConstraint OptWith
-
-   ;
-
-NestedRecordOfType
-    : "record" OptLength "of" NestedType
-
+List
+    : "type" ListKind OptLength "of" NestedType Def OptConstraint OptWith
     ;
 
-NestedSetOfType
-    : "set" OptLength "of" NestedType
-
+ListKind
+    : "record"
+    | "set"
     ;
 
+NestedList
+    : ListKind OptLength "of" NestedType
+    ;
 
 /*************************************************************************
  * Struct Type
  *************************************************************************/
 
-UnionType
-    : "union" Def "{" StructFields "}" OptWith
-
+Struct
+    : "type" StructKind Def "{" OptStructFields "}" OptWith
     ;
 
-RecordType
-    : "record" Def "{" OptStructFields "}" OptWith
-
+StructKind
+    : "record"
+    | "set"
+    | "union"
     ;
 
-SetType
-    : "set" Def "{" OptStructFields "}" OptWith
 
-    ;
-
-NestedUnionType
-    : "union" "{" StructFields "}"
-
-    ;
-
-NestedRecordType
-    : "record" "{" OptStructFields "}"
-
-    ;
-
-NestedSetType
-    : "set" "{" OptStructFields "}"
-
+NestedStruct
+    : StructKind "{" OptStructFields "}"
     ;
 
 OptStructFields
@@ -611,7 +552,6 @@ StructFields
 
 StructField
     : NestedType ArrayDef OptConstraint OptOptional
-
     ;
 
 OptOptional
@@ -619,8 +559,13 @@ OptOptional
     | "optional"
     ;
 
+
+/*************************************************************************
+ * Enumeration
+ *************************************************************************/
+
 Enum
-    : "enumerated" Def "{" Enumerations "}" OptWith
+    : "type" "enumerated" Def "{" Enumerations "}" OptWith
 
     ;
 
@@ -645,7 +590,7 @@ Enumeration
  *************************************************************************/
 
 Component
-    : "component" Def OptExtends "{" OptDecls "}" OptWith
+    : "type" "component" Def OptExtends "{" OptDecls "}" OptWith
 
     ;
 
@@ -660,8 +605,13 @@ OptExtends
  *************************************************************************/
 
 Port
-    : "port" Def PortType OptRealtime "{" PortAttributes"}" OptWith
+    : "type" "port" Def PortKind OptRealtime "{" PortAttributes"}" OptWith
+    ;
 
+PortKind
+    : "procedure"
+    | "message"
+    | "mixed"
     ;
 
 OptRealtime
@@ -669,15 +619,9 @@ OptRealtime
     | "realtime"
     ;
 
-PortType
-    : "procedure"
-    | "message"
-    | "mixed"
-    ;
-
 PortAttributes
-    :                PortAttribute OptSemicolon
-    | PortAttributes PortAttribute OptSemicolon
+    :                PortAttribute Semi
+    | PortAttributes PortAttribute Semi
     ;
 
 PortAttribute
@@ -694,11 +638,12 @@ PortAttribute
  *************************************************************************/
 
 Signature
-    : OptVisibility "signature" Def "(" OptFormalPars ")" OptReturn OptExceptionSpec OptWith
+    : "signature" Def "(" OptFormalPars ")" OptReturn OptExceptionSpec OptWith
+    | "signature" Def "(" OptFormalPars ")" NoBlock OptExceptionSpec OptWith
+    ;
 
-
-    | OptVisibility "signature" Def "(" OptFormalPars ")" NoBlock OptExceptionSpec OptWith
-
+NoBlock
+    : "noblock"
     ;
 
 OptExceptionSpec
@@ -706,8 +651,19 @@ OptExceptionSpec
     | "exception" "(" Refs ")"
     ;
 
-NoBlock
-    : "noblock"
+
+/*************************************************************************
+ * Behaviour Type
+ *************************************************************************/
+
+BehaviourType
+    : "type" BehaviourKind Def "(" OptFormalPars ")" OptRunsOnSpec OptReturn
+    ;
+
+BehaviourKind
+    : "testcase"
+    | "function"
+    | "altstep"
     ;
 
 
@@ -716,8 +672,7 @@ NoBlock
  *************************************************************************/
 
 ExtFunction
-    : OptVisibility "external" "function" OptModifier Def "(" OptFormalPars ")" OptReturn OptWith
-
+    : "external" "function" OptModifier Def "(" OptFormalPars ")" OptReturn OptWith
     ;
 
 
@@ -726,7 +681,7 @@ ExtFunction
  *************************************************************************/
 
 Function
-    : OptVisibility "function" Def OptModifier "(" OptFormalPars ")" OptRunsOnSpec OptMtcSpec OptSystemSpec OptReturn Block OptWith
+    : "function" Def OptModifier "(" OptFormalPars ")" OptRunsOnSpec OptMtcSpec OptSystemSpec OptReturn Block OptWith
     ;
 
 
@@ -735,7 +690,7 @@ Function
  *************************************************************************/
 
 Testcase
-    : OptVisibility "testcase" Def "(" OptFormalPars ")" RunsOnSpec OptSystemSpec Block OptWith
+    : "testcase" Def "(" OptFormalPars ")" RunsOnSpec OptSystemSpec Block OptWith
     ;
 
 
@@ -744,9 +699,13 @@ Testcase
  *************************************************************************/
 
 Altstep
-    : OptVisibility "altstep" Def "(" OptFormalPars ")" OptRunsOnSpec OptMtcSpec OptSystemSpec "{" Decls "}" OptWith
-    | OptVisibility "altstep" Def "(" OptFormalPars ")" OptRunsOnSpec OptMtcSpec OptSystemSpec "{" AltGuards "}" OptWith
-    | OptVisibility "altstep" Def "(" OptFormalPars ")" OptRunsOnSpec OptMtcSpec OptSystemSpec "{" Decls AltGuards "}" OptWith
+    : "altstep" Def "(" OptFormalPars ")" OptRunsOnSpec OptMtcSpec OptSystemSpec "{" AltstepBody "}" OptWith
+    ;
+
+AltstepBody
+    : Decls
+    | Decls AltGuards
+    |       AltGuards
     ;
 
 
@@ -766,10 +725,8 @@ FormalPars
 
 FormalPar
     : OptDirection OptNestedTemplateRestriction OptModifier FormalParRef Declarator
-
     ;
 
-/* NOTE: "timer" in Ref causes a shift-reduce conflict in Expr */
 FormalParRef
     : Ref
     | "timer"
@@ -780,32 +737,14 @@ FormalParRef
  * Value Declarations
  *************************************************************************/
 
-ExtConst
-    : OptVisibility "external" "const" Ref Declarators OptWith
-    ;
-
-ModulePar
-    : OptVisibility "modulepar" Ref Declarators    OptWith
-    | OptVisibility "modulepar" "{" ModulePars "}" OptWith
-    ;
-
-ModulePars
-    :            ObsoleteModulePar OptSemicolon
-    | ModulePars ObsoleteModulePar OptSemicolon
-    ;
-
-ObsoleteModulePar
-    : Ref Declarators
-    ;
-
 OptDecls
     : /* empty */
     | Decls
     ;
 
 Decls
-    :       Decl OptSemicolon
-    | Decls Decl OptSemicolon
+    :       Decl Semi
+    | Decls Decl Semi
     ;
 
 Decl
@@ -816,26 +755,76 @@ Decl
     | Const
     ;
 
+/*************************************************************************
+ * External Const
+ *************************************************************************/
+
+ExtConst
+    : "external" "const" Ref Declarators OptWith
+    ;
+
+
+/*************************************************************************
+ * Module Parameter
+ *************************************************************************/
+
+ModulePar
+    : "modulepar" Ref Declarators    OptWith
+    | "modulepar" "{" ModulePars "}" OptWith
+    ;
+
+ModulePars
+    :            ObsoleteModulePar Semi
+    | ModulePars ObsoleteModulePar Semi
+    ;
+
+ObsoleteModulePar
+    : Ref Declarators
+    ;
+
+/*************************************************************************
+ * Timer Declaration
+ *************************************************************************/
+
 TimerDecl
     : "timer" Declarators OptWith
     ;
 
+
+/*************************************************************************
+ * Port Declaration
+ *************************************************************************/
+
 PortDecl
     : "port" Ref Declarators OptWith
     ;
+
+
+/*************************************************************************
+ * Variable Declaration
+ *************************************************************************/
 
 VarDecl
     : "var" OptNestedTemplateRestriction OptModifier Ref Declarators OptWith
 
     ;
 
+
+/*************************************************************************
+ * Const Declaration
+ *************************************************************************/
+
 Const
     : "const" Ref Declarators OptWith
     ;
 
+
+/*************************************************************************
+ * Template Declaration
+ *************************************************************************/
+
 Template
-    : "template" OptTemplateRestriction OptModifier Ref Def OptTemplatePars ":=" Expr OptWith
-    | "template" OptTemplateRestriction OptModifier Ref Def OptTemplatePars ModifiesExpr OptWith
+    : "template" OptTemplateRestriction OptModifier Ref Def OptTemplatePars TemplateBody OptWith
     ;
 
 OptTemplateRestriction
@@ -850,25 +839,9 @@ OptTemplatePars
     | "(" FormalPars ")"
     ;
 
-Declarators
-    :                 Declarator
-    | Declarators "," Declarator
-    ;
-
-Declarator
-    : ArrayDef %prec ARRAYDEF
-    | ArrayDef ":=" ExprOrOmit
-
-    ;
-
-ArrayDef
-    : Def
-    | ArrayDef "[" Expr "]"
-    ;
-
-Def
-    : ID
-    | "address"
+TemplateBody
+    :                ":=" Expr
+    | "modifies" Ref ":=" Expr
     ;
 
 
@@ -887,27 +860,26 @@ OptWithStmts
     ;
 
 WithStmts
-    :           WithStmt OptSemicolon
-    | WithStmts WithStmt OptSemicolon
+    :           WithStmt Semi
+    | WithStmts WithStmt Semi
     ;
 
 WithStmt
-    : WithType OptOverride OptWithQualifiers WithValue
-
+    : WithKind OptOverride OptWithQualifiers CSTRING
     ;
 
-OptOverride
-    : /* empty */
-    | "override"
-    ;
-
-WithType
+WithKind
     : "encode"
     | "variant"
     | "display"
     | "extension"
     | "optional"
     | "stepsize"
+    ;
+
+OptOverride
+    : /* empty */
+    | "override"
     ;
 
 OptWithQualifiers
@@ -921,12 +893,12 @@ WithQualifiers
     ;
 
 WithQualifier
-    : WithSelector
-    | Ref
+    : Ref
     | "[" ExprOrOmit "]"
+    | WithSelector
     ;
 
-WithSelectorType
+WithSelectorKind
     : "group"
     | "type"
     | "template"
@@ -939,7 +911,7 @@ WithSelectorType
     ;
 
 WithSelector
-    : WithSelectorType "all" OptWithExcept
+    : WithSelectorKind "all" OptWithExcept
     ;
 
 OptWithExcept
@@ -947,128 +919,29 @@ OptWithExcept
     | "except" "{" Refs "}"
     ;
 
-WithValue
-    : CSTRING
-    ;
+
 
 /*************************************************************************
  * Expression
  *************************************************************************/
 
-Ref
-    : RefElem
-    | Ref "[" ExprOrOmit "]"
-    | Ref "(" OptInits ")"
-    | Ref "." RefElem
-    | Ref "." "reply" "(" Expr ")"                  /* TODO */
-    | Ref "." "reply" "(" Expr "value" Expr ")"     /* TODO */
-    | Ref "." "running"                             /* TODO */
-    | Ref "." "alive"                               /* TODO */
-    | Ref "." "timeout"                             /* TODO */
-    | Ref "." "done"                                /* TODO */
-    | Ref "." "killed"                              /* TODO */
-
-    | Ref "." "receive"                             /* TODO */
-    | Ref "." "trigger"                             /* TODO */
-    | Ref "." "getcall"                             /* TODO */
-    | Ref "." "catch"                               /* TODO */
-    | Ref "." "getreply"                            /* TODO */
-    | Ref "." "getreply" "(" Expr ")"               /* TODO */
-    | Ref "." "getreply" "(" Expr "value" Expr ")"  /* TODO */
+Exprs
+    :           Expr
+    | Exprs "," Expr
     ;
 
-RefElem
-    : ID
-    | AnyOrAllFromKeyword Ref %prec ANYFROM
-    | "read"
-    | "create"
-    | "send"
-    | "raise"
-    | "halt"
-    | "action"
-    | "activate"
-    | "address"
-    | "all" "component"
-    | "all" "port"
-    | "all" "timer"
-    | "any" "component"
-    | "any" "port"
-    | "any" "timer"
-    | "anytype"
-    | "bitstring"
-    | "boolean"
-    | "charstring"
-    | "checkstate"
-    | "clear"
-    | "connect"
-    | "deactivate"
-    | "default"
-    | "disconnect"
-    | "execute"
-    | "float"
-    | "getverdict"
-    | "hexstring"
-    | "integer"
-    | "kill"
-    | "log"
-    | "match"
-    | "mtc"
-    | "octetstring"
-    | "self"
-    | "setverdict"
-    | "start"
-    | "stop"
-    | "system"
-    | "testcase"
-    | "universal" "charstring"
-    | "valueof"
-    | "verdicttype"
+ExprOrOmit
+    : Expr
+    | "-" //%prec OMIT
     ;
 
-AnyOrAllFromKeyword
-    : "any" "from"
-    | "all" "from"
-    ;
-
-
-Refs
-    :          Ref
-    | Refs "," Ref
-    ;
-
-Primary
-    : Ref
-    | Ref "alive"
-    ;
-
-PortReadOp
-    : "receive"  OptParams                 OptFrom OptRedirect
-    | "trigger"  OptParams                 OptFrom OptRedirect
-    | "getcall"  OptParams                 OptFrom OptRedirect
-    | "catch"    OptParams                 OptFrom OptRedirect
-    | "getreply"                           OptFrom OptRedirect
-    | "getreply" "(" Expr ")"              OptFrom OptRedirect
-    | "getreply" "(" Expr "value" Expr ")" OptFrom OptRedirect
-    ;
-
-OptCheckParam
-    : /* empty */
-    | "(" PortReadOp ")"        /* TODO */
-    | "(" From OptRedirect ")"  /* TODO */
-    | "(" Redirect ")"          /* TODO */
-    ;
 
 Expr
     : Primary
-    | Primary Index
     | Value
     | Value Length              /* TODO */
     | Value Length "ifpresent"  /* TODO */
     | Value        "ifpresent"  /* TODO */
-
-    /* Inline templates */
-    | Ref ":" Expr
-    | ModifiesExpr
 
     /* Binary operators */
     | Expr "or"    Expr
@@ -1104,20 +977,9 @@ Expr
     | "-"     Expr %prec UNARY
     ;
 
-ModifiesExpr
-    : "modifies" Ref ":=" Expr
-
-    ;
-
-Exprs
-    :           Expr
-    | Exprs "," Expr
-    ;
-
-ExprOrOmit
-    : Expr
-    | "-" %prec OMIT
-    ;
+/*************************************************************************
+ * Literal
+ *************************************************************************/
 
 Literal
     : CSTRING
@@ -1148,8 +1010,6 @@ Literal
 
 Value
     : Literal
-    //| "decmatch" Expr
-    //| "decmatch" "(" CSTRING ")" Expr
     | "char"        "(" Exprs ")"
     | "complement"  "(" Exprs ")"
     | "permutation" "(" Exprs ")"
@@ -1167,6 +1027,60 @@ PatternValue
 
 SetValue
     : "(" Exprs ")"
+    ;
+
+
+/*************************************************************************
+ * Referencing Expressions
+ *************************************************************************/
+
+Primary
+    : Ref
+    | Ref "alive"
+    ;
+
+Refs
+    :          Ref
+    | Refs "," Ref
+    ;
+
+Ref
+    : RefElem
+    | Ref "[" ExprOrOmit "]"
+    | Ref "(" OptInits ")"
+    | Ref "." RefElem
+    ;
+
+RefElem
+    : ID
+    | "all" "component"
+    | "all" "port"
+    | "all" "timer"
+    | "any" "component"
+    | "any" "port"
+    | "any" "timer"
+    | "anytype"
+    | "bitstring"
+    | "boolean"
+    | "charstring"
+    | "checkstate"
+    | "clear"
+    | "default"
+    | "float"
+    | "getverdict"
+    | "hexstring"
+    | "integer"
+    | "kill"
+    | "match"
+    | "mtc"
+    | "octetstring"
+    | "self"
+    | "start"
+    | "stop"
+    | "system"
+    | "universal" "charstring"
+    | "valueof"
+    | "verdicttype"
     ;
 
 OptParams
@@ -1209,8 +1123,8 @@ Block
     ;
 
 Stmts
-    :       Stmt OptSemicolon
-    | Stmts Stmt OptSemicolon
+    :       Stmt Semi
+    | Stmts Stmt Semi
     ;
 
 Stmt
@@ -1219,23 +1133,18 @@ Stmt
     | "continue"
     | "return"
     | "return"     Expr
-    | "goto"       Def
-    | "label"      Def
+    | "goto"       ID
+    | "label"      ID
 
     | "map"        Params
     | "map"        Params "param" Params
     | "unmap"      OptParams
     | "unmap"      Params "param" Params
 
-    | Ref "." "call"  "(" Exprs ")" OptTo
-    | Ref "." "call"  "(" Exprs ")" OptTo "{" AltGuards "}"
-
-    /* guard op*/
-    | CommunicationStmt
-    ;
+    | "testcase" "." "stop" OptParams
 
     | Assignment
-    | Decl /* Non-Std: 5.3 "all declarations (if any), shall be made at the beginning of the statement block only" */
+    | Decl
     | ForLoop
     | WhileLoop
     | DoWhileLoop
@@ -1244,16 +1153,6 @@ Stmt
     | SelectConstruct
     | AltConstruct
     | Block
-    ;
-
-CommunicationStmt
-    : Primary
-    | Ref Redirect
-    | Ref To
-    | Ref To   Redirect
-    | Ref From
-    | Ref From Redirect
-    | Ref "." "check" OptCheckParam
     ;
 
 
@@ -1274,9 +1173,13 @@ ForLoop
     | "for" "(" Assignment ";" Expr ";" Assignment ")" Block
     ;
 
-WhileLoop   : "while" "(" Expr ")"  Block
-DoWhileLoop : "do" Block "while" "(" Expr ")"
+WhileLoop
+    : "while" "(" Expr ")"  Block
+    ;
 
+DoWhileLoop
+    : "do" Block "while" "(" Expr ")"
+    ;
 
 /*************************************************************************
  * Condition Statements
@@ -1321,8 +1224,8 @@ OptAltGuards
     ;
 
 AltGuards
-    :           AltGuard OptSemicolon
-    | AltGuards AltGuard OptSemicolon
+    :           AltGuard Semi
+    | AltGuards AltGuard Semi
     ;
 
 AltGuard
@@ -1332,7 +1235,7 @@ AltGuard
     ;
 
 GuardOp
-    : CommunicationStmt
+    : ID /* TODO */
     ;
 
 OptDirection
@@ -1365,31 +1268,32 @@ TemplateRestriction
     ;
 
 
-Redirect
-    : "->" ValueSpec OptParamSpec OptSenderSpec OptIndexSpec OptTimestamp
-    | "->"              ParamSpec OptSenderSpec OptIndexSpec OptTimestamp
-    | "->"                           SenderSpec OptIndexSpec OptTimestamp
-    | "->"                                         IndexSpec OptTimestamp
-    | "->"                                                      Timestamp
-    ;
-
-Index
-    : "->" IndexSpec
-    ;
-
 RunsOnSpec : "runs" "on" Ref;
 MtcSpec    : "mtc"       Ref;
 SystemSpec : "system"    Ref;
 
-To         : "to"        Expr
-From       : "from"      Expr
-Timestamp  : "timestamp" Ref
-IndexSpec  : MODIFIER    Ref // NOTE: test for @index
-SenderSpec : "sender"    Ref
-ValueSpec  : "value"     Ref
-           | "value"  "(" Inits ")"
-ParamSpec  : "param"  "(" Inits ")"
 Length     : "length" "(" Expr  ")"
+
+
+Declarators
+    :                 Declarator
+    | Declarators "," Declarator
+    ;
+
+Declarator
+    : ArrayDef //%prec ARRAYDEF
+    | ArrayDef ":=" ExprOrOmit
+    ;
+
+ArrayDef
+    : Def
+    | ArrayDef "[" Expr "]"
+    ;
+
+Def
+    : ID
+    | "address"
+    ;
 
 
 
@@ -1397,19 +1301,11 @@ OptRunsOnSpec : /* empty */  | RunsOnSpec;
 OptMtcSpec    : /* empty */  | MtcSpec;
 OptSystemSpec : /* empty */  | SystemSpec;
 
-OptRedirect   : /* empty */  | Redirect;
 OptLength     : /* empty */  | Length;
-OptParamSpec  : /* empty */  | ParamSpec;
-OptSenderSpec : /* empty */  | SenderSpec;
-OptIndexSpec  : /* empty */  | IndexSpec;
-OptTimestamp  : /* empty */  | Timestamp;
-OptTo         : /* empty */  | To;
-OptFrom       : /* empty */  | From;
 OptExpr       : /* empty */  | Expr;
 
 
-OptSemicolon  : /* empty */  | Semicolon ;
-Semicolon     : ";" ;
+Semi  : /* empty */    ";" ;
 
 %% /* Footer */
 
