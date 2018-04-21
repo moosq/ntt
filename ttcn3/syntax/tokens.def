@@ -34,7 +34,6 @@ DEF_VALUE(TOK_INT,             "integer literal")
 DEF_VALUE(TOK_FLOAT,           "float literal")
 DEF_VALUE(TOK_CSTRING,         "string literal")
 DEF_VALUE(TOK_BSTRING,         "bitstring literal")
-DEF_VALUE(TOK_MODIFIER,        "modifier")
 #undef DEF_VALUE
 
 #ifndef DEF_TOKEN

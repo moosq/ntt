@@ -144,8 +144,7 @@ FloatE     {Integer}("."[0-9]+)?("E"|"e")("-")?{Integer}
 
     {FloatDot}|{FloatE} return YY_VALUE(TOK_FLOAT);
     {Integer}           return YY_VALUE(TOK_INT);
-    {Identifier}        return YY_VALUE(TOK_ID);
-    @{Identifier}       return YY_VALUE(TOK_MODIFIER);
+    @?{Identifier}      return YY_VALUE(TOK_ID);
 
     "\0"                return TOK_EOF;
     {utf8}              YY_ERROR("invalid character");
