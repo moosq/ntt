@@ -2,9 +2,12 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/nokia/ntt/internal/loader"
+	"github.com/nokia/ntt/ttcn3/syntax"
 	"github.com/spf13/cobra"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 var (
@@ -50,7 +53,16 @@ func list(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	fmt.Println(sources)
+	if len(sources) == 0 {
+		fmt.Fprintln(os.Stderr, "no TTCN-3 files found in", strings.Join(args, ", "))
+		os.Exit(1)
+	}
+
+	err = loader.LoadFromFiles(sources)
+	if err != nil {
+		syntax.PrintError(os.Stderr, err)
+	}
+
 	return nil
 }
 
