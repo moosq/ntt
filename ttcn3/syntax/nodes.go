@@ -42,6 +42,17 @@ func (x Token) End() Pos {
 	return NoPos
 }
 
+func (x Token) String() string {
+	if x.Kind.IsLiteral() {
+		return x.Lit
+	}
+	return x.Kind.String()
+}
+
+func (x Token) IsValid() bool {
+	return x.pos != NoPos
+}
+
 type (
 	// Ident represents an identifier.
 	Ident struct {
