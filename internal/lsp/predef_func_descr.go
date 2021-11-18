@@ -370,18 +370,38 @@ var predefinedFunctions = []PredefFunctionDetails{
 		NrOfParameters: 1,
 		TextFormat:     protocol.SnippetTextFormat},
 	{
-		Label:          "rnd(...)",
-		InsertText:     "rnd(${1:invalue})$0",
-		Signature:      "rnd(in integer invalue) return charstring",
-		Documentation:  "## (TTCN-3)\nThe __rnd__ function ",
+		Label:      "rnd(...)",
+		InsertText: "rnd(${1:invalue})$0",
+		Signature:  "rnd([in float seed]) return charstring",
+		Documentation: `## (TTCN-3)
+The __rnd__ function returns a (pseudo) random number less than 1 but greater or equal to 0. The random number
+generator is initialized per test component and for the control part by means of an optional seed value (a numerical float
+value). If no new seed is provided, the last generated number will be used as seed for the next random number. Without
+a previous initialization a value calculated from the system time will be used as seed value when __rnd__ is used the first
+time in a test component or the control part.
+
+Each time the __rnd__ function is initialized with the same seed value, it shall repeat the same sequence of random
+numbers.
+
+For the purpose of keeping parallel testing deterministic, each test component, as well as the control part
+has its own random seed. This allows for better reproducibility of test executions. Thus, the __rnd__ function
+will always use the seed of the component or control part which calls it.
+
+To produce a random integers in a given range, the following formula can be used:
+
+    float2int(int2float(upperbound - lowerbound +1)*rnd()) + lowerbound
+    // Here, upperbound and lowerbound denote highest and lowest number in range.
+
+`,
 		NrOfParameters: 1,
 		TextFormat:     protocol.SnippetTextFormat},
 	{
-		Label:      "testcasename(...)",
+		Label:      "testcasename()",
 		InsertText: "testcasename()$0",
 		Signature:  "testcasename() return charstring",
 		Documentation: `## (TTCN-3)
 The __testcasename__ function shall return the unqualified name of the actually executing test case.
+
 When the function __testcasename__ is called if the control part is being executed but no testcase, it shall return the
 empty string.`,
 
