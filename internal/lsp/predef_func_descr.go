@@ -349,16 +349,39 @@ var predefinedFunctions = []PredefFunctionDetails{
 		NrOfParameters: 1,
 		TextFormat:     protocol.SnippetTextFormat},
 	{
-		Label:          "decvalue_o(...)",
-		InsertText:     "decvalue_o(${1:invalue})$0",
-		Signature:      "decvalue_o(in integer invalue) return charstring",
-		Documentation:  "## (TTCN-3)\nThe __decvalue_o__ function ",
-		NrOfParameters: 1,
+		Label:      "decvalue_o(...)",
+		InsertText: "decvalue_o(${1:encoded_value},(${2:decoded_value},(${3:decoding_info},(${4:dynamic_encoding})$0",
+		Signature: `decvalue_o(inout octetstring encoded_value,
+out any decoded_value,
+in universal charstring decoding_info := "",
+in universal charstring dynamic_encoding := "") return integer`,
+		Documentation: `## (TTCN-3)
+The __decvalue_o__ function decodes an octetstring into a value. The test system shall suppose that the octetstring
+_encoded_value_ represents an encoded instance of the actual type of _decoded_value_. The optional
+_decoding_info_ parameter is used for passing additional decoding information to the codec and, if it is omitted, no
+additional information is sent to the codec.
+
+The optional _dynamic_encoding_ parameter is used for dynamic selection of __encode__ attribute of the
+decoded_value parameter for this single __decvalue_o__ call. The rules for dynamic selection of the __encode__
+attribute are described in clause 27.9 of the TTCN-3 core language specification.
+
+If the decoding was successful, then the used octets are removed from the parameter _encoded_value_, the rest is
+returned (in the parameter _encoded_value_), and the decoded value is returned in the parameter _decoded_value_.
+If the decoding was unsuccessful, the actual parameters for _encoded_value_ and _decoded_value_ are not
+changed. The function shall return an integer value to indicate success or failure of the decoding below:
+
+* The return value 0 indicates that decoding was successful.
+* The return value 1 indicates an unspecified cause of decoding failure. This value is also returned if the
+_encoded_value_ parameter contains an unitialized value.
+* The return value 2 indicates that decoding could not be completed as _encoded_value_ did not contain
+enough octets.
+`,
+		NrOfParameters: 4,
 		TextFormat:     protocol.SnippetTextFormat},
 	{
 		Label:      "get_stringencoding(...)",
-		InsertText: "get_stringencoding(${1:invalue})$0",
-		Signature:  "get_stringencoding(in integer invalue) return charstring",
+		InsertText: "get_stringencoding(${1:encoded_value})$0",
+		Signature:  "get_stringencoding(in octettstring encoded_value) return octettstring",
 		Documentation: `## (TTCN-3)
 The __get_stringencoding__ function analyses the encoded_value and returns the UCS encoding scheme according to
 clause 10 of ISO/IEC 10646 [2] (see also clause 27.5 of the TTCN-3 core language specification). The identified encoding scheme, or the
@@ -378,8 +401,8 @@ Example:
 		TextFormat:     protocol.SnippetTextFormat},
 	{
 		Label:      "remove_bom(...)",
-		InsertText: "remove_bom(${1:invalue})$0",
-		Signature:  "remove_bom(in octettstring encodec_Value) return octettstring",
+		InsertText: "remove_bom(${1:encoded_value})$0",
+		Signature:  "remove_bom(in octettstring encoded_value) return octettstring",
 		Documentation: `## (TTCN-3)
 The __remove_bom__ function removes the optional FEFF ZERO WIDTH NO-BREAK SPACE sequence that may be
 present at the beginning of a stream of serialized (encoded) universal character strings to indicate the order of the octets
@@ -390,7 +413,7 @@ without change.`,
 		TextFormat:     protocol.SnippetTextFormat},
 	{
 		Label:      "rnd(...)",
-		InsertText: "rnd(${1:invalue})$0",
+		InsertText: "rnd(${1:seed})$0",
 		Signature:  "rnd([in float seed]) return float",
 		Documentation: `## (TTCN-3)
 The __rnd__ function returns a (pseudo) random number less than 1 but greater or equal to 0. The random number
