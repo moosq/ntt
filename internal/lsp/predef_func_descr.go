@@ -377,11 +377,15 @@ var predefinedFunctions = []PredefFunctionDetails{
 		NrOfParameters: 1,
 		TextFormat:     protocol.SnippetTextFormat},
 	{
-		Label:          "testcasename(...)",
-		InsertText:     "testcasename(${1:invalue})$0",
-		Signature:      "testcasename(in integer invalue) return charstring",
-		Documentation:  "## (TTCN-3)\nThe __testcasename__ function ",
-		NrOfParameters: 1,
+		Label:      "testcasename(...)",
+		InsertText: "testcasename()$0",
+		Signature:  "testcasename() return charstring",
+		Documentation: `## (TTCN-3)
+The __testcasename__ function shall return the unqualified name of the actually executing test case.
+When the function __testcasename__ is called if the control part is being executed but no testcase, it shall return the
+empty string.`,
+
+		NrOfParameters: 0,
 		TextFormat:     protocol.SnippetTextFormat},
 	{
 		Label:      "hostid(...)",
