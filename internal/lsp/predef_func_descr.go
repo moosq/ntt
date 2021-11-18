@@ -342,11 +342,26 @@ var predefinedFunctions = []PredefFunctionDetails{
 		NrOfParameters: 1,
 		TextFormat:     protocol.SnippetTextFormat},
 	{
-		Label:          "encvalue_o(...)",
-		InsertText:     "encvalue_o(${1:invalue})$0",
-		Signature:      "encvalue_o(in integer invalue) return charstring",
-		Documentation:  "## (TTCN-3)\nThe __encvalue_o__ function ",
-		NrOfParameters: 1,
+		Label:      "encvalue_o(...)",
+		InsertText: "encvalue_o(${1:inpar}, ${2:encoding_info}, ${3:dynamic_encoding}, ${4:bit_length})$0",
+		Signature:  `encvalue_o(in template (value) any inpar, in universal charstring encoding_info := "", in universal charstring dynamic_encoding := "", out integer bit_length) return octetstring`,
+		Documentation: `## (TTCN-3)
+The __encvalue_o__ function encodes a value or template into an octetstring. When the actual parameter that is passed
+to _inpar_ is a template, it shall resolve to a specific value (the same restrictions apply as for the argument of the send
+statement). The returned octetstring represents the encoded value of _inpar_, however, the TTCN-3 test system need not
+make any check on its correctness. In case the encoded message is not octet-based and has a bit length not divisable by
+8, the encoded message will be left-aligned in the returned octetstring and the least significant (8 - (bit length mod 8))
+bits in the least significant octet will be 0. The bit length can be assigned to a variable by usage of the formal out
+parameter _bit_length_. The optional _encoding_info_ parameter is used for passing additional encoding
+information to the codec and, if it is omitted, no additional information is sent to the codec.
+
+The optional _dynamic_encoding_ parameter is used for dynamic selection of encode attribute of the _inpar_ value
+for this single __encvalue_o__ call. The rules for dynamic selection of the encode attribute are described in clause 27.9.
+
+In addition to the general error causes in clause 16.1.2 of the TTCN-3 core language specification, error causes are:
+* Encoding fails due to a runtime system problem (i.e. no encoding function exists for the actual type of
+_inpar_).`,
+		NrOfParameters: 4,
 		TextFormat:     protocol.SnippetTextFormat},
 	{
 		Label:      "decvalue_o(...)",
