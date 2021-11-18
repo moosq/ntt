@@ -307,11 +307,41 @@ var predefinedFunctions = []PredefFunctionDetails{
 		NrOfParameters: 1,
 		TextFormat:     protocol.SnippetTextFormat},
 	{
-		Label:          "replace(...)",
-		InsertText:     "replace(${1:invalue})$0",
-		Signature:      "replace(in integer invalue) return charstring",
-		Documentation:  "## (TTCN-3)\nThe __replace__ function ",
-		NrOfParameters: 1,
+		Label:      "replace(...)",
+		InsertText: "replace(${1:inpar}, (${2:index}, (${3:len}, (${4:repl})$0",
+		Signature:  `replace(in any inpar, in integer index, in integer len, in any repl) return any_string_or_sequence type`,
+		Documentation: `## (TTCN-3)
+This function replaces the substring or subsequence of value _inpar_ at index _index_ of length _len_ with the string or
+sequence value _repl_ and returns the resulting string or sequence. _inpar_ shall not be modified. If _len_ is 0 the string
+or sequence _repl_ is inserted. If _index_ is 0, _repl_ is inserted at the beginning of _inpar_. If _index_ is
+__lengthof(_inpar_), _repl_ is inserted at the end of _inpar_. If _inpar_ is a literal (i.e. type is not explicitly given) the
+corresponding type shall be retrieved from the value contents. _inpar_ and _repl_, and the returned string or sequence
+shall be of the same root type. The function replace can be applied to _bitstring_, _hexstring_, _octetstring_, or
+any character string, __record of__, __set of__, or arrays. Note that indexing in strings starts from zero.
+
+Please note that the root types of arrays is __record of__, therefore if _inpar_ or _repl_ or both are an
+array, the returned type is __record of__. This, in some cases, may lead to different indexing in _inpar_
+and/or _repl_ and in the returned value.
+
+In addition to the general error causes in clause 16.1.2, error causes are:
+* _inpar_ or _repl_ are not of string, __record of__, __set of__, or array type;
+* _inpar_ and _repl_ are of different root type;
+* _index_ is less than 0 or greater than __lengthof(_inpar_);
+* _len_ is less than 0 or greater than __lengthof(_inpar_);
+* _index_+_len_ is greater than __lengthof(_inpar_).
+
+Examples:
+
+	replace ('00000110'B, 1, 3, '111'B) // returns '01110110'B
+	replace ('ABCDEF'H, 0, 2, '123'H) // returns '123CDEF'H
+	replace ('01AB23CD'O, 2, 1, 'FF96'O) // returns '01ABFF96CD'O
+	replace ("My name is JJ", 11, 1, "xx") // returns "My name is xxJ"
+	replace ("My name is JJ", 11, 0, "xx") // returns "My name is xxJJ"
+	replace ("My name is JJ", 2, 2, "x") // returns "Myxame is JJ",
+	replace ("My name is JJ", 12, 2, "xx") // produces test case error
+	replace ("My name is JJ", 13, 2, "xx") // produces test case error
+	replace ("My name is JJ", 13, 0, "xx") // returns "My name is JJxx"`,
+		NrOfParameters: 4,
 		TextFormat:     protocol.SnippetTextFormat},
 	{
 		Label:      "encvalue(...)",
