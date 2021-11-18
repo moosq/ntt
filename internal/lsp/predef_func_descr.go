@@ -363,16 +363,21 @@ var predefinedFunctions = []PredefFunctionDetails{
 		NrOfParameters: 1,
 		TextFormat:     protocol.SnippetTextFormat},
 	{
-		Label:          "remove_bom(...)",
-		InsertText:     "remove_bom(${1:invalue})$0",
-		Signature:      "remove_bom(in integer invalue) return charstring",
-		Documentation:  "## (TTCN-3)\nThe __remove_bom__ function ",
+		Label:      "remove_bom(...)",
+		InsertText: "remove_bom(${1:invalue})$0",
+		Signature:  "remove_bom(in octettstring encodec_Value) return octettstring",
+		Documentation: `## (TTCN-3)
+The __remove_bom__ function removes the optional FEFF ZERO WIDTH NO-BREAK SPACE sequence that may be
+present at the beginning of a stream of serialized (encoded) universal character strings to indicate the order of the octets
+within the encoding form, as defined in clause 10 of ISO/IEC 10646 [2]. If no FEFF ZERO WIDTH NO-BREAK
+SPACE sequence present in the _encoded_value_ parameter, the function shall return the value of the parameter
+without change.`,
 		NrOfParameters: 1,
 		TextFormat:     protocol.SnippetTextFormat},
 	{
 		Label:      "rnd(...)",
 		InsertText: "rnd(${1:invalue})$0",
-		Signature:  "rnd([in float seed]) return charstring",
+		Signature:  "rnd([in float seed]) return float",
 		Documentation: `## (TTCN-3)
 The __rnd__ function returns a (pseudo) random number less than 1 but greater or equal to 0. The random number
 generator is initialized per test component and for the control part by means of an optional seed value (a numerical float
