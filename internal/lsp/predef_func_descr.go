@@ -335,11 +335,65 @@ var predefinedFunctions = []PredefFunctionDetails{
 		NrOfParameters: 1,
 		TextFormat:     protocol.SnippetTextFormat},
 	{
-		Label:          "decvalue_unichar(...)",
-		InsertText:     "decvalue_unichar(${1:invalue})$0",
-		Signature:      "decvalue_unichar(in integer invalue) return charstring",
-		Documentation:  "## (TTCN-3)\nThe __decvalue_unichar__ function ",
-		NrOfParameters: 1,
+		Label:      "decvalue_unichar(...)",
+		InsertText: "decvalue_unichar(${1:encoded_value}, ${2:decoded_value}, ${3:string_serialization}, ${4:decoding_info}, ${5:dynamic_encoding},)$0",
+		Signature:  `decvalue_unichar(inout universal charstring encoded_value, out any decoded_value, in charstring string_serialization:= "UTF-8", in universal charstring decoding_info := "", in universal charstring dynamic_encoding := "") return integer`,
+		Documentation: `## (TTCN-3)
+The __decvalue_unichar__ function decodes (part of) a universal charstring into a value. The test system shall
+suppose that a prefix of the universal charstring _encoded_value_ represents an encoded instance of the actual type of
+_decoded_value_. The optional _decoding_info_ parameter is used for passing additional decoding information to
+the codec and, if it is omitted, no additional information is sent to the codec.
+
+The optional _dynamic_encoding_ parameter is used for dynamic selection of encode attribute of the
+_decoded_value_ parameter for this single __decvalue_unichar__ call. The rules for dynamic selection of the
+encode attribute are described in clause 27.9.
+
+If the decoding was successful, then the characters used for decoding are removed from the parameter
+_encoded_value_, the rest is returned (in the parameter _encoded_value_), and the decoded value is returned in the
+parameter _decoded_value_. If the decoding was unsuccessful, the actual parameters for _encoded_value_ and
+_decoded_value_ are not changed. The function shall return an integer value to indicate success or failure of the
+decoding below:
+
+* The return value 0 indicates that decoding was successful.
+* The return value 1 indicates an unspecified cause of decoding failure. This value is also returned if the
+_encoded_value_ parameter contains an unitialized value.
+* The return value 2 indicates that decoding could not be completed as _encoded_value_ did not contain
+enough bits.
+
+If the optional _string_serialization_ parameter is omitted, the default value "UTF-8" is used.
+
+The following values (see ISO/IEC 10646 [2]) are allowed as _string_serialization_ actual parameters (for the description
+of the UCS encoding scheme see clause 27.5 of TTCN-3 core language specification):
+
+a) "UTF-8"
+b) "UTF-16"
+c) "UTF-16LE"
+d) "UTF-16BE"
+e) "UTF-32"
+f) "UTF-32LE"
+g) "UTF-32BE"
+
+The serialized bitstring shall not include the optional signature (see clause 10 of ISO/IEC 10646 [2], also known as byte
+order mark).
+
+In case of "UTF-16" and "UTF-32" big-endian ordering shall be used (as described in clauses 10.4 and 10.7 of
+ISO/IEC 10646 [2]).  
+The semantics of the function can be explained by the following TTCN-3 function:
+
+	function decvalue_unichar (
+	            inout universal charstring encoded_value,
+	            out any decoded_value,
+	            in charstring string_encoding := "UTF-8",
+	            in universal charstring decoding_info := "",
+	            in universal charstring dynamic_encoding := "") return integer {
+		var bitstring v_str = oct2bit(unichar2oct(encoded_value, string_encoding));
+		var integer v_result := decvalue(v_str, decoded_value, decoding_info, dynamic_encoding);
+		if (v_result == 0) { // success
+			encoded_value := oct2unichar(bit2oct(v_str), string_encoding);
+		}
+		return v_result;
+	}`,
+		NrOfParameters: 5,
 		TextFormat:     protocol.SnippetTextFormat},
 	{
 		Label:      "encvalue_o(...)",
