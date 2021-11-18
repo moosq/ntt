@@ -314,11 +314,24 @@ var predefinedFunctions = []PredefFunctionDetails{
 		NrOfParameters: 1,
 		TextFormat:     protocol.SnippetTextFormat},
 	{
-		Label:          "encvalue(...)",
-		InsertText:     "encvalue(${1:invalue})$0",
-		Signature:      "encvalue(in integer invalue) return charstring",
-		Documentation:  "## (TTCN-3)\nThe __encvalue__ function ",
-		NrOfParameters: 1,
+		Label:      "encvalue(...)",
+		InsertText: "encvalue(${1:inpar}, ${2:encoding_info}, ${3:dynamic_encoding})$0",
+		Signature:  `encvalue(in template (value) any inpar, in universal charstring encoding_info := "", in universal charstring dynamic_encoding := "") return bitstring`,
+		Documentation: `## (TTCN-3)
+The __encvalue__ function encodes a value or template into a bitstring. When the actual parameter that is passed to
+_inpar_ is a template, it shall resolve to a specific value (the same restrictions apply as for the argument of the send
+statement). The returned bitstring represents the encoded value of _inpar_, however, the TTCN-3 test system need not
+make any check on its correctness. The optional _encoding_info_ parameter is used for passing additional encoding
+information to the codec and, if it is omitted, no additional information is sent to the codec.
+
+The optional _dynamic_encoding_ parameter is used for dynamic selection of encode attribute of the _inpar_ value
+for this single __encvalue__ call. The rules for dynamic selection of the encode attribute are described in clause 27.9 of the TTCN-3 core language specification.
+
+In addition to the general error causes in clause 16.1.2, error causes are:
+
+* Encoding fails due to a runtime system problem (i.e. no encoding function exists for the actual type of
+_inpar_).`,
+		NrOfParameters: 3,
 		TextFormat:     protocol.SnippetTextFormat},
 	{
 		Label:      "decvalue(...)",
@@ -344,7 +357,7 @@ changed. The function shall return an integer value to indicate success or failu
 _encoded_value_ parameter contains an unitialized value.
 * The return value 2 indicates that decoding could not be completed as _encoded_value_ did not contain
 enough bits.`,
-		NrOfParameters: 1,
+		NrOfParameters: 4,
 		TextFormat:     protocol.SnippetTextFormat},
 	{
 		Label:      "encvalue_unichar(...)",
