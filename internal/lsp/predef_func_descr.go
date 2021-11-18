@@ -356,10 +356,24 @@ var predefinedFunctions = []PredefFunctionDetails{
 		NrOfParameters: 1,
 		TextFormat:     protocol.SnippetTextFormat},
 	{
-		Label:          "get_stringencoding(...)",
-		InsertText:     "get_stringencoding(${1:invalue})$0",
-		Signature:      "get_stringencoding(in integer invalue) return charstring",
-		Documentation:  "## (TTCN-3)\nThe __get_stringencoding__ function ",
+		Label:      "get_stringencoding(...)",
+		InsertText: "get_stringencoding(${1:invalue})$0",
+		Signature:  "get_stringencoding(in integer invalue) return charstring",
+		Documentation: `## (TTCN-3)
+The __get_stringencoding__ function analyses the encoded_value and returns the UCS encoding scheme according to
+clause 10 of ISO/IEC 10646 [2] (see also clause 27.5 of the TTCN-3 core language specification). The identified encoding scheme, or the
+value "<unknown>", if the type of encoding cannot be determined unanimously, shall be returned as a character string.
+
+The initial octet sequence (also known as byte order mark, BOM), when present, allows identifying the
+encoding scheme unanimously. When it is not present, other symptoms may be used to identify the
+encoding scheme unanimously; for example, only UTF-8 may have odd number of octets and bit
+distribution according to table 2 of clause 9.1 of ISO/IEC 10646 [2].
+
+Example:
+
+    match ( get_stringencoding('6869C3BA7A'O),charstring:"UTF-8") // true
+    //(the octetstring contains the UTF-8 encoding of the character sequence "hiúz")
+`,
 		NrOfParameters: 1,
 		TextFormat:     protocol.SnippetTextFormat},
 	{
