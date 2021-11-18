@@ -328,11 +328,46 @@ var predefinedFunctions = []PredefFunctionDetails{
 		NrOfParameters: 1,
 		TextFormat:     protocol.SnippetTextFormat},
 	{
-		Label:          "encvalue_unichar(...)",
-		InsertText:     "encvalue_unichar(${1:invalue})$0",
-		Signature:      "encvalue_unichar(in integer invalue) return charstring",
-		Documentation:  "## (TTCN-3)\nThe __encvalue_unichar__ function ",
-		NrOfParameters: 1,
+		Label:      "encvalue_unichar(...)",
+		InsertText: "encvalue_unichar(${1:inpar}, ${2:string_serialization}, ${3:encoding_info}, ${4:dynamic_encoding})$0",
+		Signature:  `encvalue_unichar(in template (value) any inpar, in charstring string_serialization := "UTF-8", in universal charstring encoding_info := "", in universal charstring dynamic_encoding := "") return universal charstring`,
+		Documentation: `## (TTCN-3)
+The __encvalue_unichar__ function encodes a value or template into a universal charstring. When the actual
+parameter that is passed to _inpar_ is a template, it shall resolve to a specific value (the same restrictions apply as for
+the argument of the send statement). The returned universal charstring represents the encoded value of _inpar_,
+however, the TTCN-3 test system need not make any check on its correctness. If the optional _string_serialization_
+parameter is omitted, the default value "UTF-8" is used. The optional _encoding_info_ parameter is used for passing
+additional encoding information to the codec and, if it is omitted, no additional information is sent to the codec.
+
+The optional _dynamic_encoding_ parameter is used for dynamic selection of encode attribute of the _inpar_ value
+for this single __encvalue_unichar__ call. The rules for dynamic selection of the encode attribute are described in
+clause 27.9 of the TTCN-3 core language specification.
+
+The following values (see ISO/IEC 10646 [2]) are allowed as _string_serialization_ actual parameters (for the description
+of the UCS encoding scheme see clause 27.5):
+* "UTF-8"
+* "UTF-16"
+* "UTF-16LE"
+* "UTF-16BE"
+* "UTF-32"
+* "UTF-32LE"
+* "UTF-32BE"
+
+The serialized bitstring shall not include the optional signature (see clause 10 of ISO/IEC 10646 [2], also known as byte
+order mark).
+
+In case of "UTF-16" and "UTF-32" big-endian ordering shall be used (as described in clauses 10.4 and 10.7 of
+ISO/IEC 10646 [2]).
+
+The specific semantics of this function are explained by the following TTCN-3 definition:
+
+	function encvalue_unichar(in template(value) any inpar,
+	            in charstring enc
+	            in universal charstring encoding_info := "",
+	            in universal charstring dynamic_encoding := "") return universal charstring {
+		return oct2unichar(bit2oct(encvalue(inpar, encoding_info, dynamic_encoding)), enc);
+	}`,
+		NrOfParameters: 4,
 		TextFormat:     protocol.SnippetTextFormat},
 	{
 		Label:      "decvalue_unichar(...)",
@@ -365,13 +400,13 @@ If the optional _string_serialization_ parameter is omitted, the default value "
 The following values (see ISO/IEC 10646 [2]) are allowed as _string_serialization_ actual parameters (for the description
 of the UCS encoding scheme see clause 27.5 of TTCN-3 core language specification):
 
-a) "UTF-8"
-b) "UTF-16"
-c) "UTF-16LE"
-d) "UTF-16BE"
-e) "UTF-32"
-f) "UTF-32LE"
-g) "UTF-32BE"
+* "UTF-8"
+* "UTF-16"
+* "UTF-16LE"
+* "UTF-16BE"
+* "UTF-32"
+* "UTF-32LE"
+* "UTF-32BE"
 
 The serialized bitstring shall not include the optional signature (see clause 10 of ISO/IEC 10646 [2], also known as byte
 order mark).
