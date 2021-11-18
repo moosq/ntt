@@ -300,11 +300,52 @@ var predefinedFunctions = []PredefFunctionDetails{
 		NrOfParameters: 1,
 		TextFormat:     protocol.SnippetTextFormat},
 	{
-		Label:          "substr(...)",
-		InsertText:     "substr(${1:invalue})$0",
-		Signature:      "substr(in integer invalue) return charstring",
-		Documentation:  "## (TTCN-3)\nThe __substr__ function ",
-		NrOfParameters: 1,
+		Label:      "substr(...)",
+		InsertText: "substr(${1:inpar}, ${2:index}, ${3:count})$0",
+		Signature:  `substr(in template (present) any inpar, in integer index, in integer count) return input_string_or_sequence_type`,
+		Documentation: `## (TTCN-3)
+This function returns a substring or subsequence from a value that is of a binary string type (__bitstring__,
+__hexstring__, __octetstring__), a character string type (__charstring__, __universal charstring__), or a sequence
+type (__record of__, __set of__ or array). If _inpar_ is a literal (i.e. type is not explicitly given) the corresponding type
+shall be retrieved from the value contents. The type of the substring or subsequence returned is the root type of the input
+parameter. The starting point of substring or subsequence to return is defined by the second parameter (_index_).
+Indexing starts from zero. The third input parameter (_count_) defines the length of the substring or subsequence to be
+returned. The units of length for string types are as defined in table 4 of the TTCN-3 core language specification. For sequence types, the
+unit of length is element.
+
+Please note that the root types of arrays is __record of__, therefore if _inpar_ is an array the returned type
+is __record of__. This, in some cases, may lead to different indexing in _inpar_ and in the returned value.
+
+When used on templates of character string types, specific values and patterns that contain literal characters and the
+following metacharacters: "?", "*" are allowed in _inpar_ and the function shall return the character representation of
+the matching mechanisms. When _inpar_ is a template of binary string or sequence type or is an array, only the specific
+value combined templates whose elements are specific values, and AnyElement matching mechanisms or combined
+templates are allowed and the substring or subsequence to be returned shall not contain AnyElement or combined
+template.
+
+In addition to the general error causes in clause 16.1.2, error causes are:
+
+* _index_ is less than zero;
+* _count_ is less than zero;
+* _index_ + _count___ is greater than __lengthof__(_inpar_);
+* _inpar_ is a template of a character string type and contains a matching mechanism other than a specific value
+or pattern; or if the pattern contains other metacharacters than "?", "*";
+* _inpar_ is a template of a binary string or sequence type or array and it contains other matching mechanism as
+specific value or combined template; or if the elements of combined template are any other matching
+mechanisms than specific values, and AnyElement or combined templates;
+* _inpar_ is a template of a binary string or sequence type or array and the substring or subsequence to be
+returned contains the AnyElement matching mechanism or combined templates;
+* the template passed to the _inpar_ parameter is not of type bitstring, hexstring, octetstring,
+charstring, universal charstring, __record of__, __set of__, or array.
+
+Examples:
+
+	substr('00100110'B, 3, 4) // returns '0011'B
+	substr('ABCDEF'H, 2, 3) // returns 'CDE'H
+	substr('01AB23CD'O, 1, 2) // returns 'AB23'O
+	substr("My name is JJ", 11, 2) // returns "JJ"
+	substr({ 4, 5, 6 }, 1, 2) // returns {5, 6}`,
+		NrOfParameters: 3,
 		TextFormat:     protocol.SnippetTextFormat},
 	{
 		Label:      "replace(...)",
