@@ -350,7 +350,7 @@ var predefinedFunctions = []PredefFunctionDetails{
 		TextFormat:     protocol.SnippetTextFormat},
 	{
 		Label:      "decvalue_o(...)",
-		InsertText: "decvalue_o(${1:encoded_value},(${2:decoded_value},(${3:decoding_info},(${4:dynamic_encoding})$0",
+		InsertText: "decvalue_o(${1:encoded_value}, ${2:decoded_value}, ${3:decoding_info}, ${4:dynamic_encoding})$0",
 		Signature: `decvalue_o(inout octetstring encoded_value,
 out any decoded_value,
 in universal charstring decoding_info := "",
